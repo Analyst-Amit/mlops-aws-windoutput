@@ -1,0 +1,9 @@
+mlflow_params:
+  model_registry_stage: 'production'
+
+data_input:
+  # Specify the DataFrame for model scoring, including column(s) for lookup keys
+  table_name: 'Name of the table'
+
+data_output:
+  mode: 'overwrite'

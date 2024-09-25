@@ -1,0 +1,48 @@
+custom:
+  # Default cluster configuration
+  default-cluster-spec: &default-cluster-spec
+    spark_version: '11.0.x-cpu-ml-scala2.12'
+    node_type_id: 'i3.xlarge'
+    driver_node_type_id: 'i3.xlarge'
+    num_workers: 1
+    # Optional: Use cluster pools if available
+    # driver_instance_pool_id: 'your-pool-id'
+    # instance_pool_id: 'your-pool-id'
+
+  # Environment-specific cluster configurations
+  cluster-configs:
+    dev: 
+      <<: *default-cluster-spec
+    staging: 
+      <<: *default-cluster-spec
+    prod: 
+      <<: *default-cluster-spec
+
+# Databricks Jobs definitions
+environments:
+  dev:
+    strict_path_adjustment_policy: true
+    jobs:
+      - name: 'DEV-job'
+        <<: *dev-cluster-config
+        spark_python_task:
+          python_file: 'file://path/to/your_script.py'
+          parameters: ['--env', 'file:fuse://conf/dev/.env', '--conf-file', 'file:fuse://conf/pipeline_configs/config.yml']
+  
+  staging:
+    strict_path_adjustment_policy: true
+    jobs:
+      - name: 'STAGING-job'
+        <<: *staging-cluster-config
+        spark_python_task:
+          python_file: 'file://path/to/your_script.py'
+          parameters: ['--env', 'file:fuse://conf/staging/.env', '--conf-file', 'file:fuse://conf/pipeline_configs/config.yml']
+  
+  prod:
+    strict_path_adjustment_policy: true
+    jobs:
+      - name: 'PROD-job'
+        <<: *prod-cluster-config
+        spark_python_task:
+          python_file: 'file://path/to/your_script.py'
+          parameters: ['--env', 'file:fuse://conf/prod/.env', '--conf-file', 'file:fuse://conf/pipeline_configs/config.yml']
