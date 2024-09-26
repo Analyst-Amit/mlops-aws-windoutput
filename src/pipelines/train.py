@@ -1,0 +1,136 @@
+"""This module provides functionality for training and evaluating
+ a machine learning model using the ExtraTreesRegressor.
+
+"""
+import sys
+from pathlib import Path
+from typing import Any, Tuple
+
+import pandas as pd
+import os
+
+
+# PROJECT_ROOT = Path(__file__).absolute().parents[0]
+# sys.path.insert(0, str(PROJECT_ROOT))
+# print(PROJECT_ROOT)
+
+import mlflow
+from sklearn.ensemble import ExtraTreesRegressor
+
+from pipelines.data_pull import load_data
+from pipelines.pre_process import split_data
+from pipelines.experiment import setup_mlflow_experiment
+from utils._config import get_argv_config, save_model
+
+
+def evaluate_performance(
+    model: Any,
+    X_train: pd.DataFrame,
+    y_train: pd.DataFrame,
+    X_test: pd.DataFrame,
+    y_test: pd.DataFrame,
+) -> Tuple[float, float]:
+    """
+    Evaluate the performance of a machine learning model on training and
+      test datasets.
+
+    This function computes the accuracy of the given model on both the trainin
+    g and test datasets and logs the accuracy metrics to the console.
+      It returns the accuracy scores for both datasets.
+
+    Args:
+        model (Any): The machine learning model to be evaluated. It should
+          implement a `score` method that takes features and target labels
+            as input and returns the accuracy score.
+        X_train (pd.DataFrame): The feature matrix for the training data.
+        y_train (pd.DataFrame): The target labels for the training data.
+        X_test (pd.DataFrame): The feature matrix for the test data.
+        y_test (pd.DataFrame): The target labels for the test data.
+
+    Returns:
+        Tuple[float, float]: A tuple containing the training accuracy and test
+          accuracy, in that order.
+    """
+    print("Model evaluation...")
+    train_accuracy = model.score(X_train, y_train)
+    test_accuracy = model.score(X_test, y_test)
+
+    print(f"Accuracy on train: {train_accuracy:.0%}")
+    print(f"Accuracy on test : {test_accuracy:.0%}")
+
+    return train_accuracy, test_accuracy
+
+
+def main() -> None:
+    """
+    Main function for training a machine learning model using ExtraTreesRegressor.
+
+    This function:
+    1. Loads the configuration settings.
+    2. Sets up an MLflow experiment.
+    3. Loads and prepares the training data.
+    4. Trains an ExtraTreesRegressor model.
+    5. Logs the model and its performance metrics to MLflow.
+    6. Saves the trained model to a specified file path.
+
+    The function does not return any values but performs actions such as training
+      the model,
+    logging metrics, and saving the model artifact.
+
+    Returns:
+        None: This function does not return a value.
+    """
+    config = get_argv_config()
+    mlflow_config = config["MLflow"]
+    files_config = config["Files"]
+    model_config = config["ModelParameters"]
+
+    setup_mlflow_experiment(mlflow_config["experiment_name"])
+
+    # Load data
+    dataDF = load_data(f"data/{files_config['training_data']}")
+
+    with mlflow.start_run(run_name=mlflow_config["model_run_name"]):
+        # Prepare data
+        print("Preparing data...")
+
+        X_train, y_train, X_test, y_test = split_data(dataDF, test_size=0.2, mode="train")
+
+        # Train model
+        print("Model training...")
+        model_params = {
+            "n_estimators": int(model_config["n_estimators"]),
+            "min_samples_split": float(model_config["min_samples_split"]),
+            "random_state": int(model_config["random_state"]),
+        }
+        mlflow.log_params(model_params)
+
+        model = ExtraTreesRegressor(**model_params)
+
+        model.fit(X_train, y_train)
+
+        # Log the model with MLflow
+        mlflow.sklearn.log_model(
+            sk_model=model,
+            artifact_path=mlflow_config["artifact_path"],
+            registered_model_name=mlflow_config["registered_model_name"],
+        )
+
+        # Evaluate and log performance
+        print("Model evaluation...")
+        train_accuracy, test_accuracy = evaluate_performance(
+            model, X_train, y_train, X_test, y_test
+        )
+
+        # Log metrics
+        mlflow.log_metric("train_accuracy", train_accuracy)
+        mlflow.log_metric("test_accuracy", test_accuracy)
+
+        # Persist model to file
+        print("Persisting model...")
+        save_model(model)
+        print("Model training completed.")
+
+
+if __name__ == "__main__":
+    main()
