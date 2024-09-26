@@ -1,7 +1,8 @@
 """Postprocess"""
 
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
 
 
 def publish_data(df: pd.DataFrame, output_csv_path: str) -> None:
@@ -13,10 +14,10 @@ def publish_data(df: pd.DataFrame, output_csv_path: str) -> None:
     """
     # Convert the path to a Pathlib object
     output_csv_path = Path(output_csv_path)
-    
+
     # Create the directory if it doesn't exist
     output_csv_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Save the DataFrame to CSV
     df.to_csv(output_csv_path, index=False)
     print(f"Results saved to {output_csv_path}")

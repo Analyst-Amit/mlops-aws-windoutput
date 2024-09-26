@@ -2,25 +2,21 @@
  a machine learning model using the ExtraTreesRegressor.
 
 """
-import sys
-from pathlib import Path
 from typing import Any, Tuple
 
+import mlflow
 import pandas as pd
-import os
+from sklearn.ensemble import ExtraTreesRegressor
+
+from pipelines.data_pull import load_data
+from pipelines.experiment import setup_mlflow_experiment
+from pipelines.pre_process import split_data
+from utils._config import get_argv_config, save_model
 
 
 # PROJECT_ROOT = Path(__file__).absolute().parents[0]
 # sys.path.insert(0, str(PROJECT_ROOT))
 # print(PROJECT_ROOT)
-
-import mlflow
-from sklearn.ensemble import ExtraTreesRegressor
-
-from pipelines.data_pull import load_data
-from pipelines.pre_process import split_data
-from pipelines.experiment import setup_mlflow_experiment
-from utils._config import get_argv_config, save_model
 
 
 def evaluate_performance(

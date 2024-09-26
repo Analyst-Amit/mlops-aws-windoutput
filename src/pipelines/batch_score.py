@@ -16,7 +16,6 @@ from typing import Any
 
 import pandas as pd
 
-
 from pipelines.data_pull import load_data
 from pipelines.post_process import publish_data
 from pipelines.pre_process import prepare_data
