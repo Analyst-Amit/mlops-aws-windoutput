@@ -1,12 +1,11 @@
 """Postprocess"""
 
-from pathlib import Path
-
 import pandas as pd
+
 from utils._config import PACKAGE_ROOT
 
 
-def publish_data(df: pd.DataFrame, output_csv_path: str=PACKAGE_ROOT) -> None:
+def publish_data(df: pd.DataFrame, output_csv_path: str = PACKAGE_ROOT) -> None:
     """Save the DataFrame to a new CSV file, ensuring the directory exists.
 
     Args:
