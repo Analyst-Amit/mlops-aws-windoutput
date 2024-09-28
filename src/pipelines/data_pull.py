@@ -5,9 +5,10 @@ It includes functions to load data from various sources, such as CSV files,
 and prepares the data for further use in the pipeline.
 """
 import pandas as pd
+from utils._config import PACKAGE_ROOT
 
 
-def load_data(file_path: str) -> pd.DataFrame:
+def load_data(file_name: str) -> pd.DataFrame:
     """
     Load data from a CSV file and print information about the data.
 
@@ -25,6 +26,7 @@ def load_data(file_path: str) -> pd.DataFrame:
         str: A message indicating the data has been successfully
         pulled from the source, along with the number of rows and columns.
     """
+    file_path = f"{PACKAGE_ROOT}/data/{file_name}"
     df = pd.read_csv(file_path)
     print(
         "Pulled successfully from Source and saved to Output\n"

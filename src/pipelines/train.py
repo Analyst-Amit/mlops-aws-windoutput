@@ -84,7 +84,7 @@ def main() -> None:
     setup_mlflow_experiment(mlflow_config["experiment_name"])
 
     # Load data
-    dataDF = load_data(f"data/{files_config['training_data']}")
+    dataDF = load_data(files_config['training_data'])
 
     with mlflow.start_run(run_name=mlflow_config["model_run_name"]):
         # Prepare data

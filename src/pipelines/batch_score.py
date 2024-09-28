@@ -87,7 +87,7 @@ def main() -> None:
     model = get_pickle()
 
     # Load the test data
-    df = load_data(f"data/{files_config['test_data']}")
+    df = load_data(files_config['test_data'])
 
     # Preprocess the data for scoring
     df = prepare_data(df, mode="score")
@@ -101,3 +101,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+            
