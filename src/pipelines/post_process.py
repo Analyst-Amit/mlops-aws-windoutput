@@ -3,9 +3,10 @@
 from pathlib import Path
 
 import pandas as pd
+from utils._config import PACKAGE_ROOT
 
 
-def publish_data(df: pd.DataFrame, output_csv_path: str) -> None:
+def publish_data(df: pd.DataFrame, output_csv_path: str=PACKAGE_ROOT) -> None:
     """Save the DataFrame to a new CSV file, ensuring the directory exists.
 
     Args:
@@ -13,7 +14,7 @@ def publish_data(df: pd.DataFrame, output_csv_path: str) -> None:
         output_csv_path (str): The path where the CSV file will be saved.
     """
     # Convert the path to a Pathlib object
-    output_csv_path = Path(output_csv_path)
+    output_csv_path = output_csv_path / "src/model_output/result.csv"
 
     # Create the directory if it doesn't exist
     output_csv_path.parent.mkdir(parents=True, exist_ok=True)

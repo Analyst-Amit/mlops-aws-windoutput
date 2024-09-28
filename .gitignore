@@ -45,3 +45,5 @@ artifacts
 trained_models
 
 reports
+
+model_output
