@@ -14,11 +14,6 @@ from pipelines.pre_process import split_data
 from utils._config import get_argv_config, save_model
 
 
-# PROJECT_ROOT = Path(__file__).absolute().parents[0]
-# sys.path.insert(0, str(PROJECT_ROOT))
-# print(PROJECT_ROOT)
-
-
 def evaluate_performance(
     model: Any,
     X_train: pd.DataFrame,
@@ -84,7 +79,7 @@ def main() -> None:
     setup_mlflow_experiment(mlflow_config["experiment_name"])
 
     # Load data
-    dataDF = load_data(files_config['training_data'])
+    dataDF = load_data(files_config["training_data"])
 
     with mlflow.start_run(run_name=mlflow_config["model_run_name"]):
         # Prepare data
