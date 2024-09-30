@@ -1,0 +1,30 @@
+# Azure DevOps pipeline to test a basic CI/CD setup using a specific version of tox
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  # Step 1: Checkout code
+  - task: Checkout@1
+    displayName: 'Checkout source code'
+
+  # Step 2: Install dependencies for Python and a specific version of tox
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.x'
+      addToPath: true
+    displayName: 'Set up Python'
+
+  - script: |
+      pip install tox==4.20.0  # Replace with the desired version
+    displayName: 'Install tox version 4.20.0'
+
+  # Step 3: Run tests using tox
+  - script: |
+      tox
+    displayName: 'Run tests with tox'
