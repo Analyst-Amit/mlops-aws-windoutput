@@ -11,9 +11,6 @@ pool:
 jobs:
 - job: BuildAndTest
   displayName: 'Build and Test Job'
-  concurrency:
-    cancelInProgress: false  # Set to true to cancel running jobs when a new one is triggered
-    maxConcurrent: 1          # Set max concurrency to 1
 
   steps:
     - checkout: self
