@@ -6,7 +6,7 @@ trigger:
       - main
 
 pool:
-  name: MVSLocalPool  # Specify your local agent pool name
+  vmImage: 'ubuntu-latest'  # Specify Microsoft-hosted agent pool
 
 jobs:
 - job: BuildAndTest
