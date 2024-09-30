@@ -6,7 +6,7 @@ trigger:
       - main
 
 pool:
-  name: MVSLocalPool
+  name: MVSLocalPool  # Specify your local agent pool name
 
 jobs:
 - job: BuildAndTest
@@ -18,11 +18,20 @@ jobs:
 
     - task: UsePythonVersion@0
       inputs:
-        versionSpec: '3.x'
-        addToPath: true
+        versionSpec: '3.x'  # Specify the Python version you want
+        addToPath: true      # Add Python to the system PATH
       displayName: 'Set up Python'
       env:
-        GITHUB_TOKEN: $(GITHUB_TOKEN)
+        GITHUB_TOKEN: $(GITHUB_TOKEN)  # Pass environment variable
+
+    # Check if the token is available
+    - script: |
+        if [ -z "$(GITHUB_TOKEN)" ]; then
+          echo "GITHUB_TOKEN is not set."
+        else
+          echo "GITHUB_TOKEN is set."
+        fi
+      displayName: 'Check GITHUB_TOKEN Availability'
 
     - script: |
         pip install tox==4.20.0
