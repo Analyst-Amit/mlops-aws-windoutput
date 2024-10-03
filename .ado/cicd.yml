@@ -1,42 +1,35 @@
-# Azure DevOps pipeline with MaxConcurrency set to 1
-
-trigger:
+# Pull request validation
+pr:
   branches:
     include:
-      - main
+      - main               # Validate PRs targeting the main branch
 
+# Pool configuration: define the VM image to use
 pool:
-  vmImage: 'ubuntu-latest'  # Specify Microsoft-hosted agent pool
+  vmImage: 'ubuntu-latest'  # Use an Ubuntu image for running the pipeline
 
-jobs:
-- job: BuildAndTest
-  displayName: 'Build and Test Job'
+# Define stages
+stages:
+  # Linter stage
+  - stage: Linter            # Name of the stage
+    displayName: "Run Code Linters"
+    dependsOn: []            # No dependencies for this stage
+    jobs:
+      # Job to run Pylint
+      - job: tox_linting      # Name of the job
+        displayName: "Running Tox Linting"
+        steps:
+          # Checkout code
+          - checkout: self   # Checkout the current repository code
 
-  steps:
-    - checkout: self
-      displayName: 'Checkout source code'
+          # Set up Python environment
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.x'     # Specify Python version
+              addToPath: true
 
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.x'  # Specify the Python version you want
-        addToPath: true      # Add Python to the system PATH
-      displayName: 'Set up Python'
-      env:
-        GITHUB_TOKEN: $(GITHUB_TOKEN)  # Pass environment variable
-
-    # Check if the token is available
-    - script: |
-        if [ -z "$(GITHUB_TOKEN)" ]; then
-          echo "GITHUB_TOKEN is not set."
-        else
-          echo "GITHUB_TOKEN is set."
-        fi
-      displayName: 'Check GITHUB_TOKEN Availability'
-
-    - script: |
-        pip install tox==4.20.0
-      displayName: 'Install tox version 4.20.0'
-
-    - script: |
-        tox
-      displayName: 'Run tests with tox'
+          # Install dependencies and run Tox with pre-commit
+          - script: |
+              pip install tox  # Install Tox
+              tox -e lint      # Run Tox with the linting environment
+            displayName: "Running Tox Linting"
