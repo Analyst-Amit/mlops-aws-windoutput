@@ -1,4 +1,4 @@
-pr:
+trigger:
   branches:
     include:
       - main
