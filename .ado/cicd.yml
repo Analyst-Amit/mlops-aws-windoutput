@@ -1,5 +1,10 @@
-# Pull request validation
+# Pull request validation and push trigger
 trigger:
+  branches:
+    include:
+      - main               # Trigger on direct pushes to the main branch
+
+pr:
   branches:
     include:
       - main               # Validate PRs targeting the main branch
@@ -14,7 +19,7 @@ stages:
   - stage: Linter            # Name of the stage
     displayName: "Run Code Linters"
     jobs:
-      # Job to run Pylint
+      # Job to run Tox Linting
       - job: tox_linting      # Name of the job
         displayName: "Running Tox Linting"
         steps:
@@ -27,7 +32,7 @@ stages:
               versionSpec: '3.x'     # Specify Python version
               addToPath: true
 
-          # Install dependencies and run Tox with pre-commit
+          # Install dependencies and run Tox with the linting environment
           - script: |
               pip install tox  # Install Tox
               tox -e lint      # Run Tox with the linting environment
