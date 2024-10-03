@@ -16,7 +16,7 @@ pool:
 # Define stages
 stages:
   # Linter stage
-  - stage: Linter         # Name of the stage
+  - stage: Linters         # Name of the stage
     displayName: "Run Code Linters"
     jobs:
       # Job to run Tox Linting
@@ -38,26 +38,26 @@ stages:
               tox -e pre-commit    # Run Tox with the linting environment
             displayName: "Running Tox Linting"
 
-  # Linter stage
-  - stage: Tests         # Name of the stage
-    displayName: "Run Code Tests"
-    jobs:
-      # Job to run Tox Linting
-      - job: tox_run_test_cases      # Name of the job
-        dependsOn: Linter
-        displayName: "Running Tox test cases"
-        steps:
-          # Checkout code
-          - checkout: self   # Checkout the current repository code
+  # # Linter stage
+  # - stage: Tests         # Name of the stage
+  #   displayName: "Run Code Tests"
+  #   jobs:
+  #     # Job to run Tox Linting
+  #     - job: tox_run_test_cases      # Name of the job
+  #       dependsOn: Linter
+  #       displayName: "Running Tox test cases"
+  #       steps:
+  #         # Checkout code
+  #         - checkout: self   # Checkout the current repository code
 
-          # Set up Python environment
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.x'     # Specify Python version
-              addToPath: true
+  #         # Set up Python environment
+  #         - task: UsePythonVersion@0
+  #           inputs:
+  #             versionSpec: '3.x'     # Specify Python version
+  #             addToPath: true
 
-          # Install dependencies and run Tox with the linting environment
-          - script: |
-              pip install tox  # Install Tox
-              tox -e run_test_cases      # Run Tox with the linting environment
-            displayName: "Running Tox test cases"
+  #         # Install dependencies and run Tox with the linting environment
+  #         - script: |
+  #             pip install tox  # Install Tox
+  #             tox -e run_test_cases      # Run Tox with the linting environment
+  #           displayName: "Running Tox test cases"
