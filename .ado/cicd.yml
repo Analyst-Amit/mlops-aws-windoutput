@@ -1,16 +1,35 @@
+# Pull request validation
 trigger:
   branches:
     include:
-      - main
+      - main               # Validate PRs targeting the main branch
 
+# Pool configuration: define the VM image to use
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-latest'  # Use an Ubuntu image for running the pipeline
 
+# Define stages
 stages:
-  - stage: Linter
+  # Linter stage
+  - stage: Linter            # Name of the stage
+    displayName: "Run Code Linters"
+    dependsOn: []            # No dependencies for this stage
     jobs:
-      - job: TestJob
+      # Job to run Pylint
+      - job: tox_linting      # Name of the job
+        displayName: "Running Tox Linting"
         steps:
-          - checkout: self
-          - script: echo "Hello, World!"
-            displayName: "Run a simple script"
+          # Checkout code
+          - checkout: self   # Checkout the current repository code
+
+          # Set up Python environment
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.x'     # Specify Python version
+              addToPath: true
+
+          # Install dependencies and run Tox with pre-commit
+          - script: |
+              pip install tox  # Install Tox
+              tox -e lint      # Run Tox with the linting environment
+            displayName: "Running Tox Linting"
