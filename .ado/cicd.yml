@@ -32,15 +32,6 @@ stages:
               versionSpec: '3.x'     # Specify Python version
               addToPath: true
 
-          # Cache Python packages
-          - task: Cache@2
-            inputs:
-              key: 'python | "$(Agent.OS)" | requirements.txt'
-              path: ~/.cache/pip
-              restoreKeys: |
-                python | "$(Agent.OS)"
-            displayName: "Cache Python packages"
-
           # Install dependencies and run Tox with the linting environment
           - script: |
               pip install tox  # Install Tox
@@ -50,7 +41,7 @@ stages:
   # Tests stage
   - stage: Tests         # Name of the stage
     displayName: "Run Code Tests"
-    dependsOn: Linters  # Ensure this stage runs only after Linters complete
+    # dependsOn: Linters  # Ensure this stage runs only after Linters complete
     jobs:
       # Job to run Tox test cases
       - job: tox_run_test_cases      # Name of the job
@@ -59,22 +50,14 @@ stages:
           # Checkout code
           - checkout: self   # Checkout the current repository code
 
-          # Use cached Python environment
+          # Set up Python environment
           - task: UsePythonVersion@0
             inputs:
               versionSpec: '3.x'     # Specify Python version
               addToPath: true
 
-          # Restore the Python package cache
-          - task: Cache@2
-            inputs:
-              key: 'python | "$(Agent.OS)" | requirements.txt'
-              path: ~/.cache/pip
-              restoreKeys: |
-                python | "$(Agent.OS)"
-            displayName: "Restore Python package cache"
-
-          # Run Tox with the test environment
+          # Install dependencies and run Tox with the test environment
           - script: |
+              pip install tox  # Install Tox
               tox -e run_test_cases      # Run Tox with the testing environment
-            displayName: "Running Tox test cases"
+            displayName: "Running Tox test cases."
