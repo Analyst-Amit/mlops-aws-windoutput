@@ -13,7 +13,6 @@ stages:
   # Linter stage
   - stage: Linter            # Name of the stage
     displayName: "Run Code Linters"
-    dependsOn: []            # No dependencies for this stage
     jobs:
       # Job to run Pylint
       - job: tox_linting      # Name of the job
