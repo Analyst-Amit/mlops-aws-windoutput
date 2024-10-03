@@ -60,4 +60,4 @@ stages:
           - script: |
               pip install tox  # Install Tox
               tox -e run_test_cases      # Run Tox with the testing environment
-            displayName: "Executing all test cases"
+            displayName: "Executing all test cases."
