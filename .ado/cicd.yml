@@ -15,28 +15,28 @@ pool:
 
 # Define stages
 stages:
-  # Linter stage
-  - stage: Linters         # Name of the stage
-    displayName: "Run Code Linters"
-    jobs:
-      # Job to run Tox Linting
-      - job: tox_linting      # Name of the job
-        displayName: "Running Tox Linting"
-        steps:
-          # Checkout code
-          - checkout: self   # Checkout the current repository code
+  # # Linter stage
+  # - stage: Linters         # Name of the stage
+  #   displayName: "Run Code Linters"
+  #   jobs:
+  #     # Job to run Tox Linting
+  #     - job: tox_linting      # Name of the job
+  #       displayName: "Running Tox Linting"
+  #       steps:
+  #         # Checkout code
+  #         - checkout: self   # Checkout the current repository code
 
-          # Set up Python environment
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.x'     # Specify Python version
-              addToPath: true
+  #         # Set up Python environment
+  #         - task: UsePythonVersion@0
+  #           inputs:
+  #             versionSpec: '3.x'     # Specify Python version
+  #             addToPath: true
 
-          # Install dependencies and run Tox with the linting environment
-          - script: |
-              pip install tox  # Install Tox
-              tox -e pre-commit    # Run Tox with the linting environment
-            displayName: "Running Tox Linting"
+  #         # Install dependencies and run Tox with the linting environment
+  #         - script: |
+  #             pip install tox  # Install Tox
+  #             tox -e pre-commit    # Run Tox with the linting environment
+  #           displayName: "Running Tox Linting"
 
   # Linter stage
   - stage: Tests         # Name of the stage
@@ -44,6 +44,7 @@ stages:
     jobs:
       # Job to run Tox Linting
       - job: tox_run_test_cases      # Name of the job
+        # dependsOn: Linters
         displayName: "Running Tox test cases"
         steps:
           # Checkout code
