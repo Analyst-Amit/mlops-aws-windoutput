@@ -44,7 +44,7 @@ stages:
     jobs:
       # Job to run Tox Linting
       - job: tox_run_test_cases      # Name of the job
-        # dependsOn: Linters
+        dependsOn: Linters
         displayName: "Running Tox test cases"
         steps:
           # Checkout code
