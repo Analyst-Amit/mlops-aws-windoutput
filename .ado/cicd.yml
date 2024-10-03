@@ -7,7 +7,7 @@ trigger:
 pr:
   branches:
     include:
-      - main               # Validate PRs targeting the main branch
+      - '*'               # Validate PRs targeting the main branch
 
 # Pool configuration: define the VM image to use
 pool:
