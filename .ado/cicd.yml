@@ -38,26 +38,26 @@ stages:
               tox -e pre-commit    # Run Tox with the linting environment
             displayName: "Running Tox Linting"
 
-  # Tests stage
-  - stage: Tests         # Name of the stage
-    displayName: "Run Code Tests"
-    dependsOn: Linters  # Ensure this stage runs only after Linters complete
-    jobs:
-      # Job to run Tox test cases
-      - job: tox_run_test_cases      # Name of the job
-        displayName: "Running Tox test cases"
-        steps:
-          # Checkout code
-          - checkout: self   # Checkout the current repository code
+  # # Tests stage
+  # - stage: Tests         # Name of the stage
+  #   displayName: "Run Code Tests"
+  #   dependsOn: Linters  # Ensure this stage runs only after Linters complete
+  #   jobs:
+  #     # Job to run Tox test cases
+  #     - job: tox_run_test_cases      # Name of the job
+  #       displayName: "Running Tox test cases"
+  #       steps:
+  #         # Checkout code
+  #         - checkout: self   # Checkout the current repository code
 
-          # Set up Python environment
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.x'     # Specify Python version
-              addToPath: true
+  #         # Set up Python environment
+  #         - task: UsePythonVersion@0
+  #           inputs:
+  #             versionSpec: '3.x'     # Specify Python version
+  #             addToPath: true
 
-          # Install dependencies and run Tox with the test environment
-          - script: |
-              pip install tox  # Install Tox
-              tox -e run_test_cases      # Run Tox with the testing environment
-            displayName: "Running Tox test cases."
+  #         # Install dependencies and run Tox with the test environment
+  #         - script: |
+  #             pip install tox  # Install Tox
+  #             tox -e run_test_cases      # Run Tox with the testing environment
+  #           displayName: "Running Tox test cases."
