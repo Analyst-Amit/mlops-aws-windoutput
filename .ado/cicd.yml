@@ -1,16 +1,42 @@
+# Azure DevOps pipeline with MaxConcurrency set to 1
+
 trigger:
   branches:
     include:
       - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'ubuntu-latest'  # Specify Microsoft-hosted agent pool
 
-stages:
-  - stage: Linter
-    jobs:
-      - job: TestJob
-        steps:
-          - checkout: self
-          - script: echo "Hello, World!"
-            displayName: "Run a simple script"
+jobs:
+- job: BuildAndTest
+  displayName: 'Build and Test Job'
+
+  steps:
+    - checkout: self
+      displayName: 'Checkout source code'
+
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.x'  # Specify the Python version you want
+        addToPath: true      # Add Python to the system PATH
+      displayName: 'Set up Python'
+      env:
+        GITHUB_TOKEN: $(GITHUB_TOKEN)  # Pass environment variable
+
+    # Check if the token is available
+    - script: |
+        if [ -z "$(GITHUB_TOKEN)" ]; then
+          echo "GITHUB_TOKEN is not set."
+        else
+          echo "GITHUB_TOKEN is set."
+        fi
+      displayName: 'Check GITHUB_TOKEN Availability'
+
+    - script: |
+        pip install tox==4.20.0
+      displayName: 'Install tox version 4.20.0'
+
+    - script: |
+        tox
+      displayName: 'Run tests with tox'
