@@ -6,7 +6,7 @@ trigger:
 pr:
   branches:
     include:
-      - '*'               
+      - '*'
 
 # Pool configuration: define the VM image to use
 pool:
@@ -19,7 +19,7 @@ variables:
 # Define stages
 stages:
   # Linter stage
-  - stage: Linters         
+  - stage: Linters
     displayName: "Run Code Linters"
     jobs:
       # Job to run Tox Linting
