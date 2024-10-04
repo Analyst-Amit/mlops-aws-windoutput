@@ -2,62 +2,83 @@
 trigger:
   branches:
     include:
-      - main               # Trigger on direct pushes to the main branch
-
+      - main
 pr:
   branches:
     include:
-      - '*'               # Validate PRs targeting the main branch
+      - '*'
 
 # Pool configuration: define the VM image to use
 pool:
-  vmImage: 'ubuntu-latest'  # Use an Ubuntu image for running the pipeline
+  vmImage: 'ubuntu-latest'
+
+# Link variable group
+variables:
+  - group: AWSVariables
 
 # Define stages
 stages:
-  # Linter stage
-  - stage: Linters         # Name of the stage
-    displayName: "Run Code Linters"
+  # # Linter stage
+  # - stage: Linters
+  #   displayName: "Run Code Linters"
+  #   jobs:
+  #     # Job to run Tox Linting
+  #     - job: tox_linting      # Name of the job
+  #       displayName: "Running Tox Linting"
+  #       steps:
+  #         # Checkout code
+  #         - checkout: self
+
+  #         # Set up Python environment
+  #         - task: UsePythonVersion@0
+  #           inputs:
+  #             versionSpec: '3.x'
+  #             addToPath: true
+
+  #         # Install dependencies and run Tox with the linting environment
+  #         - script: |
+  #             pip install tox  # Install Tox
+  #             tox -e pre-commit    # Run Tox with the linting environment
+  #           displayName: "Running Tox Linting"
+
+  # # Tests stage
+  # - stage: Tests
+  #   displayName: "Run Code Tests"
+  #   dependsOn: Linters
+  #   jobs:
+  #     # Job to run Tox test cases
+  #     - job: tox_run_test_cases      # Name of the job
+  #       displayName: "Running Tox test cases"
+  #       steps:
+  #         # Checkout code
+  #         - checkout: self   # Checkout the current repository code
+
+  #         # Set up Python environment
+  #         - task: UsePythonVersion@0
+  #           inputs:
+  #             versionSpec: '3.x'     # Specify Python version
+  #             addToPath: true
+
+  #         # Install dependencies and run Tox with the test environment
+  #         - script: |
+  #             pip install tox  # Install Tox
+  #             tox -e run_test_cases
+  #           displayName: "Executing all test cases"
+
+  # S3 Bucket Check stage
+  - stage: CheckS3Buckets
+    displayName: "Check S3 Buckets"
     jobs:
-      # Job to run Tox Linting
-      - job: tox_linting      # Name of the job
-        displayName: "Running Tox Linting"
+      - job: check_s3_buckets
+        displayName: "Check S3 Buckets"
         steps:
-          # Checkout code
-          - checkout: self   # Checkout the current repository code
+          - checkout: self
 
-          # Set up Python environment
-          - task: UsePythonVersion@0
+          # List S3 buckets
+          - task: AWSCLI@1
             inputs:
-              versionSpec: '3.x'     # Specify Python version
-              addToPath: true
-
-          # Install dependencies and run Tox with the linting environment
-          - script: |
-              pip install tox  # Install Tox
-              tox -e pre-commit    # Run Tox with the linting environment
-            displayName: "Running Tox Linting"
-
-  # Tests stage
-  - stage: Tests         # Name of the stage
-    displayName: "Run Code Tests"
-    # dependsOn: Linters  # Ensure this stage runs only after Linters complete
-    jobs:
-      # Job to run Tox test cases
-      - job: tox_run_test_cases      # Name of the job
-        displayName: "Running Tox test cases"
-        steps:
-          # Checkout code
-          - checkout: self   # Checkout the current repository code
-
-          # Set up Python environment
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.x'     # Specify Python version
-              addToPath: true
-
-          # Install dependencies and run Tox with the test environment
-          - script: |
-              pip install tox  # Install Tox
-              tox -e run_test_cases      # Run Tox with the testing environment
-            displayName: "Executing all test cases"
+              awsCredentials: '215831533232-ado-dev'  # The name of the service connection
+              regionName: 'us-east-1'     
+              awsCommand: 's3'
+              awsSubCommand: 'ls'
+            displayName: "List S3 Buckets"
