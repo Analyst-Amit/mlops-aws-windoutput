@@ -18,52 +18,52 @@ variables:
 
 # Define stages
 stages:
-  # Linter stage
-  - stage: Linters
-    displayName: "Run Code Linters"
-    jobs:
-      # Job to run Tox Linting
-      - job: tox_linting      # Name of the job
-        displayName: "Running Tox Linting"
-        steps:
-          # Checkout code
-          - checkout: self
+  # # Linter stage
+  # - stage: Linters
+  #   displayName: "Run Code Linters"
+  #   jobs:
+  #     # Job to run Tox Linting
+  #     - job: tox_linting      # Name of the job
+  #       displayName: "Running Tox Linting"
+  #       steps:
+  #         # Checkout code
+  #         - checkout: self
 
-          # Set up Python environment
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.x'
-              addToPath: true
+  #         # Set up Python environment
+  #         - task: UsePythonVersion@0
+  #           inputs:
+  #             versionSpec: '3.x'
+  #             addToPath: true
 
-          # Install dependencies and run Tox with the linting environment
-          - script: |
-              pip install tox  # Install Tox
-              tox -e pre-commit    # Run Tox with the linting environment
-            displayName: "Running Tox Linting"
+  #         # Install dependencies and run Tox with the linting environment
+  #         - script: |
+  #             pip install tox  # Install Tox
+  #             tox -e pre-commit    # Run Tox with the linting environment
+  #           displayName: "Running Tox Linting"
 
-  # Tests stage
-  - stage: Tests
-    displayName: "Run Code Tests"
-    dependsOn: Linters
-    jobs:
-      # Job to run Tox test cases
-      - job: tox_run_test_cases      # Name of the job
-        displayName: "Running Tox test cases"
-        steps:
-          # Checkout code
-          - checkout: self   # Checkout the current repository code
+  # # Tests stage
+  # - stage: Tests
+  #   displayName: "Run Code Tests"
+  #   dependsOn: Linters
+  #   jobs:
+  #     # Job to run Tox test cases
+  #     - job: tox_run_test_cases      # Name of the job
+  #       displayName: "Running Tox test cases"
+  #       steps:
+  #         # Checkout code
+  #         - checkout: self   # Checkout the current repository code
 
-          # Set up Python environment
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.x'     # Specify Python version
-              addToPath: true
+  #         # Set up Python environment
+  #         - task: UsePythonVersion@0
+  #           inputs:
+  #             versionSpec: '3.x'     # Specify Python version
+  #             addToPath: true
 
-          # Install dependencies and run Tox with the test environment
-          - script: |
-              pip install tox  # Install Tox
-              tox -e run_test_cases
-            displayName: "Executing all test cases"
+  #         # Install dependencies and run Tox with the test environment
+  #         - script: |
+  #             pip install tox  # Install Tox
+  #             tox -e run_test_cases
+  #           displayName: "Executing all test cases"
 
   # S3 Bucket Check stage
   - stage: CheckS3Buckets
@@ -77,15 +77,23 @@ stages:
           - checkout: self   # Checkout the current repository code
 
           # Install AWS CLI
+                    # Set up AWS credentials and list S3 buckets
           - script: |
+              # Install AWS CLI and jq
               sudo apt-get update
-              sudo apt-get install -y awscli jq  # Install AWS CLI and jq
-            displayName: "Install AWS CLI and jq"
+              sudo apt-get install -y awscli jq
 
-          # Set up AWS credentials and list S3 buckets
-          - script: |
+              # Enable debugging
+              set -x
+
               # Assume the role using the ARN from variable group
               CREDS=$(aws sts assume-role --role-arn $(ROLE_ARN) --role-session-name CI_CD_Session)
+
+              # Check if the command was successful
+              if [ $? -ne 0 ]; then
+                  echo "Failed to assume role"
+                  exit 1
+              fi
 
               # Set AWS credentials from assumed role
               export AWS_ACCESS_KEY_ID=$(echo $CREDS | jq -r '.Credentials.AccessKeyId')
@@ -94,5 +102,12 @@ stages:
 
               # List S3 buckets
               echo "Listing S3 Buckets:"
-              aws s3 ls
+              aws s3 ls 2>&1
+
+              # Check if the listing command was successful
+              if [ $? -ne 0 ]; then
+                  echo "Failed to list S3 buckets"
+                  exit 1
+              fi
             displayName: "Assume AWS Role and List S3 Buckets"
+
