@@ -81,4 +81,4 @@ stages:
               regionName: 'us-east-1'     
               awsCommand: 's3'
               awsSubCommand: 'ls'
-            displayName: "List S3 Buckets"
+            displayName: "List S3 Buckets."
