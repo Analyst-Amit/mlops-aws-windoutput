@@ -4,74 +4,39 @@ This module handles the loading and pulling of data for further processing.
 It includes functions to load data from various sources, such as CSV files,
 and prepares the data for further use in the pipeline.
 """
-from pathlib import Path
+from io import StringIO
 
 import boto3
 import pandas as pd
 
-from utils._config import PACKAGE_ROOT, get_argv_config
 
-
-def load_data(file_name: str) -> pd.DataFrame:
+def load_data(file_name: str, bucket_name: str) -> pd.DataFrame:
     """
-    Load data from a CSV file and print information about the data.
+    Load data from an S3 bucket and return it as a DataFrame.
 
-    This function reads a CSV file from the specified file path using
-    pandas, loads the data into a DataFrame, and prints the number
-    of rows and columns in the DataFrame. It then returns the DataFrame.
+    This function fetches a CSV file from an Amazon S3 bucket, reads its contents
+    into a pandas DataFrame, and returns the DataFrame. It also prints the number
+    of rows and columns in the data.
 
     Args:
-        file_path (str): The path to the CSV file to be loaded.
+        file_name (str): The name of the CSV file to load from the S3 bucket.
 
     Returns:
-        pd.DataFrame: The data loaded from the CSV file.
+        pd.DataFrame: The loaded data as a DataFrame.
 
     Prints:
-        str: A message indicating the data has been successfully
-        pulled from the source, along with the number of rows and columns.
+        str: A message indicating the data was successfully loaded, with the
+        number of rows and columns in the DataFrame.
     """
-    file_path = f"{PACKAGE_ROOT}/data/{file_name}"
-    df = pd.read_csv(file_path)
-    print(
-        "Pulled successfully from Source and saved to Output\n"
-        f"Rows: {df.shape[0]} Columns: {df.shape[1]}"
-    )
-    return df
-
-
-def download_from_s3():
-    """
-    Download both training and testing files from an S3 bucket to a local directory.
-
-    This function downloads the training and testing files from an S3 bucket to a local
-    directory defined by the PACKAGE_ROOT variable.
-    """
-    # Load configuration once at the module level
-    config = get_argv_config()
-    s3_config = config["S3Configs"]
-    bucket_name = s3_config["bucket_name"]
-    files_config = config["Files"]
-
     s3 = boto3.client("s3")
 
-    # Define the file keys mapping for training and testing data
-    file_keys = {
-        "training_data": f"data/{files_config['training_data']}",
-        "test_data": f"data/{files_config['test_data']}",
-    }
+    # Retrieve CSV file from S3
+    obj = s3.get_object(Bucket=bucket_name, Key=f"data/{file_name}")
+    data = obj["Body"].read().decode("utf-8")
 
-    for key_name, file_key in file_keys.items():
-        download_path = f"{PACKAGE_ROOT}/{file_key}"
+    # Load data into a DataFrame
+    df = pd.read_csv(StringIO(data))
 
-        # Ensure the directory exists before saving the file
-        Path(download_path).parent.mkdir(parents=True, exist_ok=True)
-
-        # Download the file from the S3 bucket and save it to the specified local path
-        s3.download_file(bucket_name, file_key, download_path)
-
-        # Inform the user that the file has been downloaded successfully
-        print(f"Downloaded {files_config[key_name]} from {bucket_name}/data to {download_path}")
-
-
-if __name__ == "__main__":
-    download_from_s3()
+    print("Data loaded successfully from S3")
+    print(f"Rows: {df.shape[0]}, Columns: {df.shape[1]}")
+    return df

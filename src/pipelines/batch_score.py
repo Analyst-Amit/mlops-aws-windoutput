@@ -82,12 +82,12 @@ def main() -> None:
     """
     config = get_argv_config()
     files_config = config["Files"]
+    s3_config = config["S3Configs"]
 
     # Load the model
     model = get_pickle()
 
-    # Load the test data
-    df = load_data(files_config["test_data"])
+    df = load_data(files_config["test_data"], s3_config["bucket_name"])
 
     # Preprocess the data for scoring
     df = prepare_data(df, mode="score")
@@ -96,7 +96,7 @@ def main() -> None:
     scored_df = batch_score(df, model)
 
     # Perform the post processing
-    publish_data(scored_df)
+    publish_data(scored_df, s3_config["bucket_name"])
 
 
 if __name__ == "__main__":

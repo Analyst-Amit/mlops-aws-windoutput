@@ -75,11 +75,12 @@ def main() -> None:
     mlflow_config = config["MLflow"]
     files_config = config["Files"]
     model_config = config["ModelParameters"]
+    s3_config = config["S3Configs"]
 
     setup_mlflow_experiment(mlflow_config["experiment_name"])
 
     # Load data
-    dataDF = load_data(files_config["training_data"])
+    dataDF = load_data(files_config["training_data"], s3_config["bucket_name"])
 
     with mlflow.start_run(run_name=mlflow_config["model_run_name"]):
         # Prepare data

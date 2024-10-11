@@ -78,7 +78,7 @@ stages:
           - task: AWSCLI@1
             inputs:
               awsCredentials: '215831533232-ado-dev'  # The name of the service connection
-              regionName: 'us-east-1'     
+              regionName: 'us-east-1'
               awsCommand: 's3'
               awsSubCommand: 'ls'
             displayName: "List S3 Buckets."
