@@ -15,70 +15,74 @@ pool:
 # Link variable group
 variables:
   - group: AWSVariables
+  - group: DockerCredentials
 
 # Define stages
 stages:
-  # # Linter stage
-  # - stage: Linters
-  #   displayName: "Run Code Linters"
-  #   jobs:
-  #     # Job to run Tox Linting
-  #     - job: tox_linting      # Name of the job
-  #       displayName: "Running Tox Linting"
-  #       steps:
-  #         # Checkout code
-  #         - checkout: self
-
-  #         # Set up Python environment
-  #         - task: UsePythonVersion@0
-  #           inputs:
-  #             versionSpec: '3.x'
-  #             addToPath: true
-
-  #         # Install dependencies and run Tox with the linting environment
-  #         - script: |
-  #             pip install tox  # Install Tox
-  #             tox -e pre-commit    # Run Tox with the linting environment
-  #           displayName: "Running Tox Linting"
-
-  # # Tests stage
-  # - stage: Tests
-  #   displayName: "Run Code Tests"
-  #   dependsOn: Linters
-  #   jobs:
-  #     # Job to run Tox test cases
-  #     - job: tox_run_test_cases      # Name of the job
-  #       displayName: "Running Tox test cases"
-  #       steps:
-  #         # Checkout code
-  #         - checkout: self   # Checkout the current repository code
-
-  #         # Set up Python environment
-  #         - task: UsePythonVersion@0
-  #           inputs:
-  #             versionSpec: '3.x'     # Specify Python version
-  #             addToPath: true
-
-  #         # Install dependencies and run Tox with the test environment
-  #         - script: |
-  #             pip install tox  # Install Tox
-  #             tox -e run_test_cases
-  #           displayName: "Executing all test cases"
-
-  # S3 Bucket Check stage
-  - stage: CheckS3Buckets
-    displayName: "Check S3 Buckets"
+  # Linter stage
+  - stage: Linters
+    displayName: "Run Code Linters"
     jobs:
-      - job: check_s3_buckets
-        displayName: "Check S3 Buckets"
+      # Job to run Tox Linting
+      - job: tox_linting      # Name of the job
+        displayName: "Running Tox Linting"
+        steps:
+          # Checkout code
+          - checkout: self
+
+          # Set up Python environment
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.x'
+              addToPath: true
+
+          # Install dependencies and run Tox with the linting environment
+          - script: |
+              pip install tox  # Install Tox
+              tox -e pre-commit    # Run Tox with the linting environment
+            displayName: "Running Tox Linting"
+
+  # Tests stage
+  - stage: Tests
+    displayName: "Run Code Tests"
+    dependsOn: Linters
+    jobs:
+      # Job to run Tox test cases
+      - job: tox_run_test_cases      # Name of the job
+        displayName: "Running Tox test cases"
+        steps:
+          # Checkout code
+          - checkout: self   # Checkout the current repository code
+
+          # Set up Python environment
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.x'     # Specify Python version
+              addToPath: true
+
+          # Install dependencies and run Tox with the test environment
+          - script: |
+              pip install tox  # Install Tox
+              tox -e run_test_cases
+            displayName: "Executing all test cases"
+
+  # Build and Push Docker Image Stage
+  - stage: BuildAndPush
+    displayName: "Build and Push Docker Image"
+    dependsOn: Tests
+    jobs:
+      - job: docker_build_and_push
+        displayName: "Build Docker Image and Push to Docker Hub"
         steps:
           - checkout: self
 
-          # List S3 buckets
-          - task: AWSCLI@1
+          # Build Docker image
+          - task: Docker@2
+            displayName: 'Build Docker Image'
             inputs:
-              awsCredentials: '215831533232-ado-dev'  # The name of the service connection
-              regionName: 'us-east-1'
-              awsCommand: 's3'
-              awsSubCommand: 'ls'
-            displayName: "List S3 Buckets."
+              containerRegistry: 'docker-hub-connection'  # Use your service connection name here
+              repository: '$(DOCKER_USERNAME)/mlops-aws-windoutput'
+              command: 'buildAndPush'
+              Dockerfile: 'Dockerfile'  # Path to your Dockerfile
+              tags: |
+                v0.0.1  # Tag for your image

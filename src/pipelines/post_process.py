@@ -28,7 +28,7 @@ def publish_data(df: pd.DataFrame, bucket_name, file_name: str = "result") -> No
 
     # Upload the CSV to S3
     s3.put_object(
-        Bucket=bucket_name, Key=f"data/output_files/{file_name}.csv", Body=csv_buffer.getvalue()
+        Bucket=bucket_name, Key=f"output_files/{file_name}.csv", Body=csv_buffer.getvalue()
     )
 
     print(f"Data successfully uploaded to S3 as {file_name}")
