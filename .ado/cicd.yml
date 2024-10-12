@@ -1,14 +1,18 @@
-# Pull request validation and push trigger
+# Triggers
 trigger:
+  # All Commits
   branches:
     include:
-      - main
-
-  # Trigger production deployment only on release tag
+      - '*'
+  # All Tags
   tags:
     include:
-      - 'v*'
-
+      - '*'
+# All Pull Requests
+pr:
+  branches:
+    include:
+      - '*'
 # Pool configuration: define the VM image to use
 pool:
   vmImage: 'ubuntu-latest'
@@ -43,20 +47,11 @@ stages:
               Dockerfile: 'Dockerfile'  # Path to your Dockerfile
               tags: 'staging-latest'
 
-  # Build and Push Docker Image to Production (Manual Approval)
+  # Build and Push Docker Image to Production on Tag Creation
   - stage: Production
     displayName: "Deploy to Production"
     dependsOn: Staging
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'refs/tags/v'))
-
-    # Add manual approval for production deployment
-    approval:
-      - name: "Manual Approval"
-        type: "manual"
-        displayName: "Approve Production Deployment"
-        timeoutInMinutes: 120
-        allowApprovalsFromPipelineOwner: true
-
     jobs:
       - job: docker_build_and_push_prod
         displayName: "Build Docker Image and Push to Docker Hub (Production)"
