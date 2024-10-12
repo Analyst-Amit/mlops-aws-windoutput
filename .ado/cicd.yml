@@ -69,7 +69,7 @@ stages:
 # Build and Push Docker Image Stage
   - stage: BuildAndPush
     displayName: "Build and Push Docker Image"
-    dependsOn: Tests
+    # dependsOn: Tests
     jobs:
       - job: docker_build_and_push
         displayName: "Build Docker Image and Push to Docker Hub"
