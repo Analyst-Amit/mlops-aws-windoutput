@@ -24,52 +24,112 @@ variables:
 
 # Define stages
 stages:
+
+# Validator Stage
+- stage: Validator
+  displayName: "Validate Build Prerequisites"
+  jobs:
+    - job: validate_files
+      displayName: "Validate Required Files and Directories"
+      steps:
+        - checkout: self
+
+        # Define the lists of required files and directories
+        - script: |
+            # Define lists of required files and directories
+            REQUIRED_FILES=(
+              "Dockerfile"
+              "config.ini"
+              "requirements.txt"
+              "pyproject.toml"
+              ".gitignore"
+              ".pre-commit-config.yaml"
+            )
+            
+            REQUIRED_DIRS=(
+              "src"
+              "tests"
+              ".ado"
+            )
+
+            # Function to check for files
+            check_files() {
+              echo "Checking for required files..."
+              for file in "${REQUIRED_FILES[@]}"; do
+                if [ ! -f "$file" ]; then
+                  echo "Error: $file is missing!" && exit 1
+                else
+                  echo "File '$file' is present."
+                fi
+              done
+              echo "All required files are present."
+            }
+
+            # Function to check for directories
+            check_directories() {
+              echo "Checking for required directories..."
+              for dir in "${REQUIRED_DIRS[@]}"; do
+                if [ ! -d "$dir" ]; then
+                  echo "Error: Directory '$dir' is missing!" && exit 1
+                else
+                  echo "Directory '$dir' is present."
+                fi
+              done
+              echo "All required directories are present."
+            }
+
+            # Run checks
+            check_files
+            check_directories
+          displayName: "Validate Files and Directories"
+
+
   # Build and Push Docker Image to Staging
-  - stage: Staging
-    displayName: "Deploy to Staging"
-    jobs:
-      - job: docker_build_and_push_staging
-        displayName: "Build Docker Image and Push to Docker Hub (Staging)"
-        steps:
-          - checkout: self
+  # - stage: Staging
+  #   displayName: "Deploy to Staging"
+  #   jobs:
+  #     - job: docker_build_and_push_staging
+  #       displayName: "Build Docker Image and Push to Docker Hub (Staging)"
+  #       steps:
+  #         - checkout: self
 
-          # Debugging to see the value of DOCKER_USERNAME
-          - script: echo "DOCKER_USERNAME is- $(DOCKER_USERNAME)"
-            displayName: "Print DOCKER_USERNAME"
+  #         # Debugging to see the value of DOCKER_USERNAME
+  #         - script: echo "DOCKER_USERNAME is- $(DOCKER_USERNAME)"
+  #           displayName: "Print DOCKER_USERNAME"
 
-          # Build Docker image for staging
-          - task: Docker@2
-            displayName: 'Build Docker Image for Staging'
-            inputs:
-              containerRegistry: 'docker-hub-connection'  # Use your service connection name here
-              repository: '$(DOCKER_USERNAME)/mlops-aws-windoutput-staging'  # Staging repository
-              command: 'buildAndPush'
-              Dockerfile: 'Dockerfile'  # Path to your Dockerfile
-              tags: 'staging-latest'
+  #         # Build Docker image for staging
+  #         - task: Docker@2
+  #           displayName: 'Build Docker Image for Staging'
+  #           inputs:
+  #             containerRegistry: 'docker-hub-connection'  # Use your service connection name here
+  #             repository: '$(DOCKER_USERNAME)/mlops-aws-windoutput-staging'  # Staging repository
+  #             command: 'buildAndPush'
+  #             Dockerfile: 'Dockerfile'  # Path to your Dockerfile
+  #             tags: 'staging-latest'
 
   # Build and Push Docker Image to Production on Tag Creation
-  - stage: Production
-    displayName: "Deploy to Production"
-    dependsOn: Staging
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'refs/tags/v'))
-    jobs:
-      - job: docker_build_and_push_prod
-        displayName: "Build Docker Image and Push to Docker Hub (Production)"
-        steps:
-          - checkout: self
+  # - stage: Production
+  #   displayName: "Deploy to Production"
+  #   dependsOn: Staging
+  #   condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'refs/tags/v'))
+  #   jobs:
+  #     - job: docker_build_and_push_prod
+  #       displayName: "Build Docker Image and Push to Docker Hub (Production)"
+  #       steps:
+  #         - checkout: self
 
-          # Debugging to see the value of DOCKER_USERNAME
-          - script: echo "DOCKER_USERNAME is- $(DOCKER_USERNAME)"
-            displayName: "Print DOCKER_USERNAME"
+  #         # Debugging to see the value of DOCKER_USERNAME
+  #         - script: echo "DOCKER_USERNAME is- $(DOCKER_USERNAME)"
+  #           displayName: "Print DOCKER_USERNAME"
 
-          # Build Docker image for production
-          - task: Docker@2
-            displayName: 'Build Docker Image for Production'
-            inputs:
-              containerRegistry: 'docker-hub-connection'  # Use your service connection name here
-              repository: '$(DOCKER_USERNAME)/mlops-aws-windoutput'  # Production repository
-              command: 'buildAndPush'
-              Dockerfile: 'Dockerfile'  # Path to your Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
+  #         # Build Docker image for production
+  #         - task: Docker@2
+  #           displayName: 'Build Docker Image for Production'
+  #           inputs:
+  #             containerRegistry: 'docker-hub-connection'  # Use your service connection name here
+  #             repository: '$(DOCKER_USERNAME)/mlops-aws-windoutput'  # Production repository
+  #             command: 'buildAndPush'
+  #             Dockerfile: 'Dockerfile'  # Path to your Dockerfile
+  #             tags: |
+  #               latest
+  #               $(Build.SourceBranchName)
