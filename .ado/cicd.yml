@@ -4,13 +4,7 @@ trigger:
     include:
       - main
 
-pr:
-  branches:
-    include:
-      - '*'
-
-# Trigger production deployment only on release tag
-trigger:
+  # Trigger production deployment only on release tag
   tags:
     include:
       - 'v*'
@@ -26,57 +20,9 @@ variables:
 
 # Define stages
 stages:
-  # # Linter stage
-  # - stage: Linters
-  #   displayName: "Run Code Linters"
-  #   jobs:
-  #     # Job to run Tox Linting
-  #     - job: tox_linting      # Name of the job
-  #       displayName: "Running Tox Linting"
-  #       steps:
-  #         # Checkout code
-  #         - checkout: self
-
-  #         # Set up Python environment
-  #         - task: UsePythonVersion@0
-  #           inputs:
-  #             versionSpec: '3.x'
-  #             addToPath: true
-
-  #         # Install dependencies and run Tox with the linting environment
-  #         - script: |
-  #             pip install tox  # Install Tox
-  #             tox -e pre-commit    # Run Tox with the linting environment
-  #           displayName: "Running Tox Linting"
-
-  # Tests stage
-  # - stage: Tests
-  #   displayName: "Run Code Tests"
-  #   dependsOn: Linters
-  #   jobs:
-  #     # Job to run Tox test cases
-  #     - job: tox_run_test_cases      # Name of the job
-  #       displayName: "Running Tox test cases"
-  #       steps:
-  #         # Checkout code
-  #         - checkout: self   # Checkout the current repository code
-
-  #         # Set up Python environment
-  #         - task: UsePythonVersion@0
-  #           inputs:
-  #             versionSpec: '3.x'     # Specify Python version
-  #             addToPath: true
-
-  #         # Install dependencies and run Tox with the test environment
-  #         - script: |
-  #             pip install tox  # Install Tox
-  #             tox -e run_test_cases
-  #           displayName: "Executing all test cases"
-
   # Build and Push Docker Image to Staging
   - stage: Staging
     displayName: "Deploy to Staging"
-    # dependsOn: Tests
     jobs:
       - job: docker_build_and_push_staging
         displayName: "Build Docker Image and Push to Docker Hub (Staging)"
