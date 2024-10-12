@@ -3,16 +3,23 @@ trigger:
   branches:
     include:
       - main
+
 pr:
   branches:
     include:
       - '*'
 
+# Trigger production deployment only on release tag
+trigger:
+  tags:
+    include:
+      - 'v*'
+
 # Pool configuration: define the VM image to use
 pool:
   vmImage: 'ubuntu-latest'
 
-# Link variable group
+# Link variable groups
 variables:
   - group: AWSVariables
   - group: DockerCredentials
@@ -42,7 +49,7 @@ stages:
   #             tox -e pre-commit    # Run Tox with the linting environment
   #           displayName: "Running Tox Linting"
 
-  # # Tests stage
+  # Tests stage
   # - stage: Tests
   #   displayName: "Run Code Tests"
   #   dependsOn: Linters
@@ -66,13 +73,13 @@ stages:
   #             tox -e run_test_cases
   #           displayName: "Executing all test cases"
 
-# Build and Push Docker Image Stage
-  - stage: BuildAndPush
-    displayName: "Build and Push Docker Image"
+  # Build and Push Docker Image to Staging
+  - stage: Staging
+    displayName: "Deploy to Staging"
     # dependsOn: Tests
     jobs:
-      - job: docker_build_and_push
-        displayName: "Build Docker Image and Push to Docker Hub"
+      - job: docker_build_and_push_staging
+        displayName: "Build Docker Image and Push to Docker Hub (Staging)"
         steps:
           - checkout: self
 
@@ -80,12 +87,48 @@ stages:
           - script: echo "DOCKER_USERNAME is- $(DOCKER_USERNAME)"
             displayName: "Print DOCKER_USERNAME"
 
-          # Build Docker image
+          # Build Docker image for staging
           - task: Docker@2
-            displayName: 'Build Docker Image'
+            displayName: 'Build Docker Image for Staging'
             inputs:
               containerRegistry: 'docker-hub-connection'  # Use your service connection name here
-              repository: '$(DOCKER_USERNAME)/mlops-aws-windoutput'  # Ensure this resolves correctly
+              repository: '$(DOCKER_USERNAME)/mlops-aws-windoutput-staging'  # Staging repository
               command: 'buildAndPush'
               Dockerfile: 'Dockerfile'  # Path to your Dockerfile
-              tags: 'v0.0.1' 
+              tags: 'staging-latest'
+
+  # Build and Push Docker Image to Production (Manual Approval)
+  - stage: Production
+    displayName: "Deploy to Production"
+    dependsOn: Staging
+    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'refs/tags/v'))
+
+    # Add manual approval for production deployment
+    approval:
+      - name: "Manual Approval"
+        type: "manual"
+        displayName: "Approve Production Deployment"
+        timeoutInMinutes: 120
+        allowApprovalsFromPipelineOwner: true
+
+    jobs:
+      - job: docker_build_and_push_prod
+        displayName: "Build Docker Image and Push to Docker Hub (Production)"
+        steps:
+          - checkout: self
+
+          # Debugging to see the value of DOCKER_USERNAME
+          - script: echo "DOCKER_USERNAME is- $(DOCKER_USERNAME)"
+            displayName: "Print DOCKER_USERNAME"
+
+          # Build Docker image for production
+          - task: Docker@2
+            displayName: 'Build Docker Image for Production'
+            inputs:
+              containerRegistry: 'docker-hub-connection'  # Use your service connection name here
+              repository: '$(DOCKER_USERNAME)/mlops-aws-windoutput'  # Production repository
+              command: 'buildAndPush'
+              Dockerfile: 'Dockerfile'  # Path to your Dockerfile
+              tags: |
+                latest
+                $(Build.BuildId)
