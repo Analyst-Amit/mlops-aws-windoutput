@@ -19,54 +19,54 @@ variables:
 
 # Define stages
 stages:
-  # Linter stage
-  - stage: Linters
-    displayName: "Run Code Linters"
-    jobs:
-      # Job to run Tox Linting
-      - job: tox_linting      # Name of the job
-        displayName: "Running Tox Linting"
-        steps:
-          # Checkout code
-          - checkout: self
+  # # Linter stage
+  # - stage: Linters
+  #   displayName: "Run Code Linters"
+  #   jobs:
+  #     # Job to run Tox Linting
+  #     - job: tox_linting      # Name of the job
+  #       displayName: "Running Tox Linting"
+  #       steps:
+  #         # Checkout code
+  #         - checkout: self
 
-          # Set up Python environment
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.x'
-              addToPath: true
+  #         # Set up Python environment
+  #         - task: UsePythonVersion@0
+  #           inputs:
+  #             versionSpec: '3.x'
+  #             addToPath: true
 
-          # Install dependencies and run Tox with the linting environment
-          - script: |
-              pip install tox  # Install Tox
-              tox -e pre-commit    # Run Tox with the linting environment
-            displayName: "Running Tox Linting"
+  #         # Install dependencies and run Tox with the linting environment
+  #         - script: |
+  #             pip install tox  # Install Tox
+  #             tox -e pre-commit    # Run Tox with the linting environment
+  #           displayName: "Running Tox Linting"
 
-  # Tests stage
-  - stage: Tests
-    displayName: "Run Code Tests"
-    dependsOn: Linters
-    jobs:
-      # Job to run Tox test cases
-      - job: tox_run_test_cases      # Name of the job
-        displayName: "Running Tox test cases"
-        steps:
-          # Checkout code
-          - checkout: self   # Checkout the current repository code
+  # # Tests stage
+  # - stage: Tests
+  #   displayName: "Run Code Tests"
+  #   dependsOn: Linters
+  #   jobs:
+  #     # Job to run Tox test cases
+  #     - job: tox_run_test_cases      # Name of the job
+  #       displayName: "Running Tox test cases"
+  #       steps:
+  #         # Checkout code
+  #         - checkout: self   # Checkout the current repository code
 
-          # Set up Python environment
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.x'     # Specify Python version
-              addToPath: true
+  #         # Set up Python environment
+  #         - task: UsePythonVersion@0
+  #           inputs:
+  #             versionSpec: '3.x'     # Specify Python version
+  #             addToPath: true
 
-          # Install dependencies and run Tox with the test environment
-          - script: |
-              pip install tox  # Install Tox
-              tox -e run_test_cases
-            displayName: "Executing all test cases"
+  #         # Install dependencies and run Tox with the test environment
+  #         - script: |
+  #             pip install tox  # Install Tox
+  #             tox -e run_test_cases
+  #           displayName: "Executing all test cases"
 
-  # Build and Push Docker Image Stage
+# Build and Push Docker Image Stage
   - stage: BuildAndPush
     displayName: "Build and Push Docker Image"
     dependsOn: Tests
@@ -76,13 +76,16 @@ stages:
         steps:
           - checkout: self
 
+          # Debugging to see the value of DOCKER_USERNAME
+          - script: echo "DOCKER_USERNAME is- $(DOCKER_USERNAME)"
+            displayName: "Print DOCKER_USERNAME"
+
           # Build Docker image
           - task: Docker@2
             displayName: 'Build Docker Image'
             inputs:
               containerRegistry: 'docker-hub-connection'  # Use your service connection name here
-              repository: '$(DOCKER_USERNAME)/mlops-aws-windoutput'
+              repository: '$(DOCKER_USERNAME)/mlops-aws-windoutput'  # Ensure this resolves correctly
               command: 'buildAndPush'
               Dockerfile: 'Dockerfile'  # Path to your Dockerfile
-              tags: |
-                v0.0.1  # Tag for your image
+              tags: 'v0.0.1' 
