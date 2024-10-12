@@ -72,4 +72,4 @@ stages:
               Dockerfile: 'Dockerfile'  # Path to your Dockerfile
               tags: |
                 latest
-                $(Build.BuildId)
+                $(Build.SourceBranchName)
