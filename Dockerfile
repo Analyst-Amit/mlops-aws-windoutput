@@ -14,3 +14,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Set the PYTHONPATH environment variable
 ENV PYTHONPATH=/app/src
+
+# Specify the command to run the batch score script
+CMD ["python", "/app/src/pipelines/batch_score.py"]
