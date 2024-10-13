@@ -23,11 +23,14 @@
 """
 
 import json
+import tempfile
 from configparser import ConfigParser
 from pathlib import Path
 from typing import Any, Dict
 
+import boto3
 import joblib
+from botocore.exceptions import ClientError
 
 
 PACKAGE_ROOT = Path(__file__).parents[2]
@@ -72,40 +75,35 @@ def get_json(path: str) -> Dict[str, Any]:
         return json.load(f)
 
 
-def get_pickle(path: str = TRAINED_MODEL_DIR) -> Any:
-    """Get Pickle and Return Contents.
-
-    Args:
-        path (str): The path to the pickle file.
-
-    Returns:
-        Any: The loaded object from the pickle file.
-    """
-    # Convert the path to a Pathlib object
-    path = Path(path)
-
-    # Ensure the directory exists before attempting to open the file
-    if not path.exists():
-        raise FileNotFoundError(f"The file at {path} does not exist.")
-
-    # Open the file and load the pickle content
-    with path.open("rb") as f:
-        return joblib.load(f)
+def save_model_to_s3(model: Any, bucket_name: str) -> None:
+    """Save the model to S3."""
+    s3_client = boto3.client("s3")
+    key = "Artifacts/model.bin"
+    try:
+        with tempfile.TemporaryFile() as fp:
+            joblib.dump(model, fp)
+            fp.seek(0)
+            s3_client.put_object(Body=fp.read(), Bucket=bucket_name, Key=key)
+            print(f"Model saved to s3://{bucket_name}/{key}")
+    except Exception as e:
+        print(f"Failed to save model to S3: {e}")
 
 
-def save_model(model: Any, model_path: str = TRAINED_MODEL_DIR) -> None:
-    """Save the trained model to a file.
+def load_model_from_s3(bucket_name: str) -> Any:
+    s3_client = boto3.client("s3")
+    key = "Artifacts/model.bin"
+    """Load the model from S3."""
+    model = None
+    try:
+        with tempfile.TemporaryFile() as fp:
+            s3_client.download_fileobj(Fileobj=fp, Bucket=bucket_name, Key=key)
+            fp.seek(0)
+            model = joblib.load(fp)
+            print(f"Model loaded from s3://{bucket_name}/{key}")
+    except ClientError as e:
+        error_code = e.response["Error"]["Code"]
+        print(error_code)
+        print(f"Failed to load model from S3: Model not found at s3://{bucket_name}/Artifacts")
+        return "404"
 
-    Args:
-        model (Any): The trained machine learning model to be saved.
-        model_path (str): The path where the model file will be saved.
-    """
-    # Ensure the directory exists before saving the model
-    model_path = Path(model_path)
-    model_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Save the model to the specified file
-    with model_path.open("wb") as f_out:
-        joblib.dump(model, f_out)
-
-    print(f"Model saved to {model_path}")
+    return model

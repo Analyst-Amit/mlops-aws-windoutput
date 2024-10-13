@@ -11,7 +11,7 @@ from sklearn.ensemble import ExtraTreesRegressor
 from pipelines.data_pull import load_data
 from pipelines.experiment import setup_mlflow_experiment
 from pipelines.pre_process import split_data
-from utils._config import get_argv_config, save_model
+from utils._config import get_argv_config, save_model_to_s3
 
 
 def evaluate_performance(
@@ -120,7 +120,7 @@ def main() -> None:
 
         # Persist model to file
         print("Persisting model...")
-        save_model(model)
+        save_model_to_s3(model, bucket_name=s3_config["bucket_name"])
         print("Model training completed.")
 
 

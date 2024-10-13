@@ -19,7 +19,8 @@ import pandas as pd
 from pipelines.data_pull import load_data
 from pipelines.post_process import publish_data
 from pipelines.pre_process import prepare_data
-from utils._config import get_argv_config, get_pickle
+from pipelines.train import main as model_train
+from utils._config import get_argv_config, load_model_from_s3
 
 
 def score_model(
@@ -84,19 +85,37 @@ def main() -> None:
     files_config = config["Files"]
     s3_config = config["S3Configs"]
 
-    # Load the model
-    model = get_pickle()
+    # Try to load the model from S3
+    try:
+        model = load_model_from_s3(s3_config["bucket_name"])
 
-    df = load_data(files_config["test_data"], s3_config["bucket_name"])
+        # Check if the model load returned a 400 error (model not found)
+        if model == "404":
+            print("Model not found, triggering model re-training...")
+            model_train()
 
-    # Preprocess the data for scoring
-    df = prepare_data(df, mode="score")
+            # After re-training, attempt to load the model again
+            model = load_model_from_s3(s3_config["bucket_name"])
+            print("Model Loaded!! Continuing Model Inferencing")
+            if model == "404":
+                raise Exception("Model re-training failed, unable to load model after re-train.")
 
-    # Score the data
-    scored_df = batch_score(df, model)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        print("Exiting process.")
 
-    # Perform the post processing
-    publish_data(scored_df, s3_config["bucket_name"])
+    else:
+        # Load the test data from S3 or local files
+        df = load_data(files_config["test_data"], s3_config["bucket_name"])
+
+        # Preprocess the data for scoring
+        df = prepare_data(df, mode="score")
+
+        # Score the data using the model
+        scored_df = batch_score(df, model)
+
+        # Perform the post-processing and save the results
+        publish_data(scored_df, s3_config["bucket_name"])
 
 
 if __name__ == "__main__":
