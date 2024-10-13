@@ -90,7 +90,7 @@ stages:
               repository: $(DOCKER_USERNAME)/mlops-aws-windoutput-staging
               command: buildAndPush
               Dockerfile: Dockerfile
-              tags: staging-latest
+              tags: latest
 
   - stage: Production
     displayName: Deploy to Production
