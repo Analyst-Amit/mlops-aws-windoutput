@@ -17,7 +17,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV PYTHONPATH=/app/src
 ENV GIT_PYTHON_REFRESH=quiet
 
-ENTRYPOINT ["python"]
-CMD ["/app/src/pipelines/batch_score.py", "--env", "staging"]
-# # Specify the command to run the batch score script
-# CMD ["python", "/app/src/pipelines/batch_score.py"]
+# Use CMD to specify the script and its default arguments
+CMD ["python", "/app/src/pipelines/batch_score.py", "--env", "staging"]
