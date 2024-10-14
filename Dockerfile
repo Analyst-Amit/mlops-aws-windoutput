@@ -8,12 +8,16 @@ WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 COPY src/ /app/src/
 COPY config.ini /app/config.ini
+COPY conf/ /app/conf/
 
 # Install the required Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Set the PYTHONPATH environment variable
 ENV PYTHONPATH=/app/src
+ENV GIT_PYTHON_REFRESH=quiet
 
-# Specify the command to run the batch score script
-CMD ["python", "/app/src/pipelines/batch_score.py"]
+ENTRYPOINT ["python"]
+CMD ["/app/src/pipelines/batch_score.py", "--env", "staging"]
+# # Specify the command to run the batch score script
+# CMD ["python", "/app/src/pipelines/batch_score.py"]

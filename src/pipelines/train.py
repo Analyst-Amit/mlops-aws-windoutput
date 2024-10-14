@@ -11,7 +11,8 @@ from sklearn.ensemble import ExtraTreesRegressor
 from pipelines.data_pull import load_data
 from pipelines.experiment import setup_mlflow_experiment
 from pipelines.pre_process import split_data
-from utils._config import get_argv_config, save_model_to_s3
+from utils._config import get_argv_config, save_model_to_s3, load_env_file, parse_args
+import os
 
 
 def evaluate_performance(
@@ -75,12 +76,20 @@ def main() -> None:
     mlflow_config = config["MLflow"]
     files_config = config["Files"]
     model_config = config["ModelParameters"]
-    s3_config = config["S3Configs"]
+    
+    # Parse arguments
+    args = parse_args()
+
+    # Load the environment variables from the .env file
+    load_env_file(args.env)
+
+    # Access the environment variables
+    bucket_name = os.getenv('s3_bucket')
 
     setup_mlflow_experiment(mlflow_config["experiment_name"])
 
     # Load data
-    dataDF = load_data(files_config["training_data"], s3_config["bucket_name"])
+    dataDF = load_data(files_config["training_data"], bucket_name)
 
     with mlflow.start_run(run_name=mlflow_config["model_run_name"]):
         # Prepare data
@@ -120,7 +129,7 @@ def main() -> None:
 
         # Persist model to file
         print("Persisting model...")
-        save_model_to_s3(model, bucket_name=s3_config["bucket_name"])
+        save_model_to_s3(model, bucket_name=bucket_name)
         print("Model training completed.")
 
 

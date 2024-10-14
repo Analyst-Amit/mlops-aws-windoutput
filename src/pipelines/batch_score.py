@@ -20,7 +20,8 @@ from pipelines.data_pull import load_data
 from pipelines.post_process import publish_data
 from pipelines.pre_process import prepare_data
 from pipelines.train import main as model_train
-from utils._config import get_argv_config, load_model_from_s3
+from utils._config import get_argv_config, load_model_from_s3, load_env_file, parse_args
+import os
 
 
 def score_model(
@@ -83,11 +84,19 @@ def main() -> None:
     """
     config = get_argv_config()
     files_config = config["Files"]
-    s3_config = config["S3Configs"]
+
+    # Parse arguments
+    args = parse_args()
+
+    # Load the environment variables from the .env file
+    load_env_file(args.env)
+
+    # Access the environment variables
+    bucket_name = os.getenv('s3_bucket')
 
     # Try to load the model from S3
     try:
-        model = load_model_from_s3(s3_config["bucket_name"])
+        model = load_model_from_s3(bucket_name)
 
         # Check if the model load returned a 400 error (model not found)
         if model == "404":
@@ -95,7 +104,7 @@ def main() -> None:
             model_train()
 
             # After re-training, attempt to load the model again
-            model = load_model_from_s3(s3_config["bucket_name"])
+            model = load_model_from_s3(bucket_name)
             print("Model Loaded!! Continuing Model Inferencing")
             if model == "404":
                 raise Exception("Model re-training failed, unable to load model after re-train.")
@@ -106,7 +115,7 @@ def main() -> None:
 
     else:
         # Load the test data from S3 or local files
-        df = load_data(files_config["test_data"], s3_config["bucket_name"])
+        df = load_data(files_config["test_data"], bucket_name)
 
         # Preprocess the data for scoring
         df = prepare_data(df, mode="score")
@@ -115,7 +124,7 @@ def main() -> None:
         scored_df = batch_score(df, model)
 
         # Perform the post-processing and save the results
-        publish_data(scored_df, s3_config["bucket_name"])
+        publish_data(scored_df, bucket_name)
 
 
 if __name__ == "__main__":

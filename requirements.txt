@@ -5,6 +5,7 @@ scikit-learn==1.5.2
 pre-commit==3.6.0
 boto3==1.35.29
 joblib==1.4.2
+python-dotenv==1.0.1
 # black==24.3.0
 # flake8==7.0.0
 # pylint==3.0.3
