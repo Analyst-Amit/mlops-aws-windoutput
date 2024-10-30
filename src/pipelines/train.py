@@ -85,8 +85,9 @@ def main() -> None:
 
     # Access the environment variables
     bucket_name = os.getenv('s3_bucket')
+    MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI')
 
-    setup_mlflow_experiment(mlflow_config["experiment_name"])
+    setup_mlflow_experiment(MLFLOW_TRACKING_URI, mlflow_config["experiment_name"])
 
     # Load data
     dataDF = load_data(files_config["training_data"], bucket_name)
@@ -113,7 +114,7 @@ def main() -> None:
         # Log the model with MLflow
         mlflow.sklearn.log_model(
             sk_model=model,
-            artifact_path=mlflow_config["artifact_path"],
+            artifact_path=bucket_name,
             registered_model_name=mlflow_config["registered_model_name"],
         )
 

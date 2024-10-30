@@ -19,7 +19,7 @@ import mlflow
 from mlflow.exceptions import MlflowException
 
 
-def setup_mlflow_experiment(experiment_name: str) -> None:
+def setup_mlflow_experiment(MLFLOW_TRACKING_URI: str, experiment_name: str) -> None:
     """Ensure MLflow experiment exists and set it for logging.
 
     Args:
@@ -29,7 +29,8 @@ def setup_mlflow_experiment(experiment_name: str) -> None:
     Raises:
         MlflowException: If there's an error while interacting with MLflow.
     """
-    mlflow.set_tracking_uri(uri=os.getenv("MLFLOW_TRACKING_URI"))
+    print(f"MLflow Tracking URI: {MLFLOW_TRACKING_URI}")
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
     try:
         # Check if the experiment exists
