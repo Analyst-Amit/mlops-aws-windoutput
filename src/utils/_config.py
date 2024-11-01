@@ -27,12 +27,11 @@ import tempfile
 from configparser import ConfigParser
 from pathlib import Path
 from typing import Any, Dict
-import os
-from dotenv import load_dotenv
 
 import boto3
 import joblib
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
 
 
 PACKAGE_ROOT = Path(__file__).parents[2]
@@ -40,39 +39,40 @@ CONFIG_FILE_PATH = PACKAGE_ROOT / "config.ini"
 TRAINED_MODEL_DIR = PACKAGE_ROOT / "src/trained_models/model.bin"
 
 
-from pathlib import Path
-from dotenv import load_dotenv
 import argparse
+from pathlib import Path
+
 
 def load_env_file(env: str):
     """
     Load the .env file based on the environment (e.g., 'dev', 'prod').
-    
+
     Args:
         env (str): The environment to load (e.g., 'dev', 'prod').
     """
-    env_path = Path(__file__).resolve().parents[2] / f'conf/{env}.env'
-    
+    env_path = Path(__file__).resolve().parents[2] / f"conf/{env}.env"
+
     # Load the .env file
     if not env_path.exists():
         raise FileNotFoundError(f"Environment file not found: {env_path}")
-    
+
     load_dotenv(dotenv_path=env_path)
     print(f"Environment: {env}")
+
 
 def parse_args():
     """
     Parse command-line arguments for environment and user.
-    
+
     Returns:
         Namespace: Parsed arguments containing 'env' and 'user'.
     """
     parser = argparse.ArgumentParser(description="Process environment configurations.")
-    
+
     # Define named arguments
-    parser.add_argument('--env', required=True, help="Environment to use (e.g., 'dev' or 'prod')")
+    parser.add_argument("--env", required=True, help="Environment to use (e.g., 'dev' or 'prod')")
     # parser.add_argument('--user', required=True, help="Username to use")
-    
+
     # Parse the arguments
     return parser.parse_args()
 

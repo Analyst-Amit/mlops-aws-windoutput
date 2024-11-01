@@ -12,6 +12,7 @@ Dependencies:
 - src.utils._config.get_pickle
 """
 
+import os
 from typing import Any
 
 import pandas as pd
@@ -20,8 +21,7 @@ from pipelines.data_pull import load_data
 from pipelines.post_process import publish_data
 from pipelines.pre_process import prepare_data
 from pipelines.train import main as model_train
-from utils._config import get_argv_config, load_model_from_s3, load_env_file, parse_args
-import os
+from utils._config import get_argv_config, load_env_file, load_model_from_s3, parse_args
 
 
 def score_model(
@@ -92,7 +92,7 @@ def main() -> None:
     load_env_file(args.env)
 
     # Access the environment variables
-    bucket_name = os.getenv('s3_bucket')
+    bucket_name = os.getenv("s3_bucket")
 
     # Try to load the model from S3
     try:

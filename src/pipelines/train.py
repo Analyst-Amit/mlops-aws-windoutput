@@ -2,17 +2,22 @@
  a machine learning model using the ExtraTreesRegressor.
 
 """
+import os
 from typing import Any, Tuple
 
 import mlflow
 import pandas as pd
+from mlflow.models import infer_signature
 from sklearn.ensemble import ExtraTreesRegressor
 
 from pipelines.data_pull import load_data
-from pipelines.experiment import setup_mlflow_experiment
+from pipelines.experiment import (
+    mlflow_initial_tags_aliases,
+    run_mlflow_model_update,
+    setup_mlflow_experiment,
+)
 from pipelines.pre_process import split_data
-from utils._config import get_argv_config, save_model_to_s3, load_env_file, parse_args
-import os
+from utils._config import get_argv_config, load_env_file, parse_args, save_model_to_s3
 
 
 def evaluate_performance(
@@ -53,7 +58,7 @@ def evaluate_performance(
     return train_accuracy, test_accuracy
 
 
-def main() -> None:
+def main(config) -> None:
     """
     Main function for training a machine learning model using ExtraTreesRegressor.
 
@@ -72,11 +77,11 @@ def main() -> None:
     Returns:
         None: This function does not return a value.
     """
-    config = get_argv_config()
+    
     mlflow_config = config["MLflow"]
     files_config = config["Files"]
     model_config = config["ModelParameters"]
-    
+
     # Parse arguments
     args = parse_args()
 
@@ -84,8 +89,8 @@ def main() -> None:
     load_env_file(args.env)
 
     # Access the environment variables
-    bucket_name = os.getenv('s3_bucket')
-    MLFLOW_TRACKING_URI = os.getenv('MLFLOW_TRACKING_URI')
+    bucket_name = os.getenv("s3_bucket")
+    MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
 
     setup_mlflow_experiment(MLFLOW_TRACKING_URI, mlflow_config["experiment_name"])
 
@@ -111,12 +116,18 @@ def main() -> None:
 
         model.fit(X_train, y_train)
 
+        # Infer the model signature
+        signature = infer_signature(X_train, model.predict(X_train))
+
         # Log the model with MLflow
         mlflow.sklearn.log_model(
             sk_model=model,
             artifact_path=bucket_name,
+            signature=signature,
             registered_model_name=mlflow_config["registered_model_name"],
         )
+
+        mlflow_initial_tags_aliases(mlflow_config["registered_model_name"])
 
         # Evaluate and log performance
         print("Model evaluation...")
@@ -135,4 +146,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    config = get_argv_config()
+    main(config)
+    run_mlflow_model_update(config)
