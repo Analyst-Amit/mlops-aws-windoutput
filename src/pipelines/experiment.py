@@ -15,11 +15,12 @@ Dependencies:
 from time import sleep
 
 import mlflow
-import numpy as np
 import pandas as pd
 from mlflow.exceptions import MlflowException
 from mlflow.tracking import MlflowClient
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
+
+from utils._config import load_model_by_alias
 
 
 def setup_mlflow_tracking(uri="http://localhost:5000"):
@@ -90,14 +91,6 @@ def mlflow_initial_tags_aliases(registered_model_name):
         print("No versions found for the specified model.")
 
 
-def load_model_by_alias(model_name, alias):
-    """
-    Load a model from MLflow registry using its alias.
-    """
-    model_uri = f"models:/{model_name}@{alias}"
-    return mlflow.pyfunc.load_model(model_uri)
-
-
 def update_model_alias(client, model_name, new_alias, version, old_alias=None):
     """
     Set a new alias for a model version and optionally delete an old alias.
@@ -121,7 +114,8 @@ def calculate_rmse(predictions, true_values):
     Returns:
         float: Computed RMSE.
     """
-    return np.sqrt(mean_squared_error(true_values, predictions))
+    # return np.sqrt(mean_squared_error(true_values, predictions))
+    return root_mean_squared_error(true_values, predictions)
 
 
 def evaluate_and_update_champion(client, model_name, data, true_values):

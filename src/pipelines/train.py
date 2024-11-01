@@ -77,7 +77,7 @@ def main(config) -> None:
     Returns:
         None: This function does not return a value.
     """
-    
+
     mlflow_config = config["MLflow"]
     files_config = config["Files"]
     model_config = config["ModelParameters"]

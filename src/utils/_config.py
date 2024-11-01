@@ -30,6 +30,7 @@ from typing import Any, Dict
 
 import boto3
 import joblib
+import mlflow
 from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 
@@ -146,3 +147,11 @@ def load_model_from_s3(bucket_name: str) -> Any:
         return "404"
 
     return model
+
+
+def load_model_by_alias(model_name, alias):
+    """
+    Load a model from MLflow registry using its alias.
+    """
+    model_uri = f"models:/{model_name}@{alias}"
+    return mlflow.pyfunc.load_model(model_uri)

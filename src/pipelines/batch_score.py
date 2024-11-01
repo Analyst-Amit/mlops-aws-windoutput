@@ -20,8 +20,12 @@ import pandas as pd
 from pipelines.data_pull import load_data
 from pipelines.post_process import publish_data
 from pipelines.pre_process import prepare_data
-from pipelines.train import main as model_train
-from utils._config import get_argv_config, load_env_file, load_model_from_s3, parse_args
+from utils._config import (
+    get_argv_config,
+    load_env_file,
+    load_model_by_alias,
+    parse_args,
+)
 
 
 def score_model(
@@ -84,6 +88,7 @@ def main() -> None:
     """
     config = get_argv_config()
     files_config = config["Files"]
+    mlflow_config = config["MLflow"]
 
     # Parse arguments
     args = parse_args()
@@ -94,37 +99,20 @@ def main() -> None:
     # Access the environment variables
     bucket_name = os.getenv("s3_bucket")
 
-    # Try to load the model from S3
-    try:
-        model = load_model_from_s3(bucket_name)
+    model = load_model_by_alias(mlflow_config["registered_model_name"], "champion")
+    print("Model loaded successfully from MLflow Server...")
 
-        # Check if the model load returned a 400 error (model not found)
-        if model == "404":
-            print("Model not found, triggering model re-training...")
-            model_train()
+    # Load the test data from S3 or local files
+    df = load_data(files_config["test_data"], bucket_name)
 
-            # After re-training, attempt to load the model again
-            model = load_model_from_s3(bucket_name)
-            print("Model Loaded!! Continuing Model Inferencing")
-            if model == "404":
-                raise Exception("Model re-training failed, unable to load model after re-train.")
+    # Preprocess the data for scoring
+    df = prepare_data(df, mode="score")
 
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
-        print("Exiting process.")
+    # Score the data using the model
+    scored_df = batch_score(df, model)
 
-    else:
-        # Load the test data from S3 or local files
-        df = load_data(files_config["test_data"], bucket_name)
-
-        # Preprocess the data for scoring
-        df = prepare_data(df, mode="score")
-
-        # Score the data using the model
-        scored_df = batch_score(df, model)
-
-        # Perform the post-processing and save the results
-        publish_data(scored_df, bucket_name)
+    # Perform the post-processing and save the results
+    publish_data(scored_df, bucket_name)
 
 
 if __name__ == "__main__":
