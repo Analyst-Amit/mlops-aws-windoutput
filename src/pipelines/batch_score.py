@@ -49,7 +49,20 @@ def score_model(
     Returns:
         float: The predicted value from the model.
     """
-    return model.predict([[wind_speed, theoretical_power, wind_direction, month, hour]])[0]
+    # return model.predict([[wind_speed, theoretical_power, wind_direction, month, hour]])[0]
+    # Creating a DataFrame with named columns for the model input
+    input_df = pd.DataFrame(
+        [
+            {
+                "Wind Speed (m/s)": wind_speed,
+                "Theoretical_Power_Curve (KWh)": theoretical_power,
+                "Wind Direction (°)": wind_direction,
+                "Month": month,
+                "Hour": hour,
+            }
+        ]
+    )
+    return model.predict(input_df)[0]
 
 
 def batch_score(df: pd.DataFrame, model: Any) -> pd.DataFrame:

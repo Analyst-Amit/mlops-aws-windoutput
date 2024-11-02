@@ -110,6 +110,7 @@ def main(config) -> None:
             "min_samples_split": float(model_config["min_samples_split"]),
             "random_state": int(model_config["random_state"]),
         }
+
         mlflow.log_params(model_params)
 
         model = ExtraTreesRegressor(**model_params)

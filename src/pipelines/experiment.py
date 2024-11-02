@@ -12,7 +12,6 @@ Dependencies:
 - `sklearn`: For model performance evaluation metrics.
 """
 
-from time import sleep
 
 import mlflow
 import pandas as pd
@@ -173,13 +172,24 @@ def run_mlflow_model_update(config):
     client = setup_mlflow_tracking()
     print("MLflow updating 'candidate' to 'challenger'...")
 
-    candidate_version = client.get_model_version_by_alias(model_name, "candidate").version
-    update_model_alias(client, model_name, "challenger", candidate_version, old_alias="candidate")
-    sleep(15)
+    try:
+        candidate_version = client.get_model_version_by_alias(model_name, "candidate").version
+        update_model_alias(
+            client, model_name, "challenger", candidate_version, old_alias="candidate"
+        )
+    except mlflow.exceptions.MlflowException:
+        print(f"No 'candidate' version found for model '{model_name}'.")
+        return
 
-    # Prepare evaluation data and evaluate models
-    data, true_values = prepare_evaluation_data()
-    evaluate_and_update_champion(client, model_name, data, true_values)
+    # Check if there is only one model version in the registry
+    model_versions = client.search_model_versions(f"name='{model_name}'")
+    if len(model_versions) == 1:
+        champion_version = model_versions[0].version
+        update_model_alias(client, model_name, "champion", champion_version, old_alias="challenger")
+    else:
+        # Prepare evaluation data and evaluate models
+        data, true_values = prepare_evaluation_data()
+        evaluate_and_update_champion(client, model_name, data, true_values)
 
 
 if __name__ == "__main__":
