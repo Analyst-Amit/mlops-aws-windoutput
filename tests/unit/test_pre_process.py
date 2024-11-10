@@ -28,5 +28,5 @@ def test_validate_columns_extra_columns():
     df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4], "col3": [5, 6], "col4": [7, 8]})
     required_columns = ["col1", "col2"]
 
-    # This should not raise any exception because required columns are present
+    # This should not raise any exception because required columns are present.
     validate_columns(df, required_columns)
